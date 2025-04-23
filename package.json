@@ -1,0 +1,23 @@
+{
+  "name": "location-app",
+  "version": "1.0.0",
+  "description": "User able to share their favourites places and check for best places in their areas.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "location",
+    "tracker",
+    "places"
+  ],
+  "author": "Mubashar Akram",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
