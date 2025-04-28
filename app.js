@@ -1,7 +1,7 @@
 const express = require('express')
 
 const bodyParser = require('body-parser')
-
+const HttpError = require('./models/error-model')
 const app = express()
 
 const placesRoutes = require('./routes/places-routes')
@@ -9,13 +9,20 @@ const placesRoutes = require('./routes/places-routes')
 app.use(express.json())
 app.use('/api/places', placesRoutes)
 
-app.use((error,req,res,next)=>{
+// In case of no route match
+app.use((req,res,next)=>{
+    const error = new HttpError('Could not found the route', 404)
+    throw error
+})
+
+app.use((err,req,res,next)=>{
     if(res.headerSent){
-        return next(error)
+        return next(err)
     }
-    res.status(error.code || 500);
+    console.log(err)
+    res.status(err.statusCode || 500);
     res.json({
-        message: error.message || 'An unknown error occurred!'
+        message: err.message || 'An unknown error occurred!'
     })
 
 })

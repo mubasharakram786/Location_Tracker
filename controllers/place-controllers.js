@@ -1,5 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
-const httpError = require('../models/error-model')
+const HttpError = require('../models/error-model')
 
 
 const DUMMY_PLACES = [
@@ -34,7 +34,7 @@ const getPlaces = (req,res,next)=>{
     const place = DUMMY_PLACES.find(place => place.id === pid)
 
     if(!place){
-        throw new httpError("No place found for the provided place ID",404)
+        throw new HttpError("No place found for the provided place ID",404)
     }
 
     res.json({place:place})
@@ -46,7 +46,7 @@ const getPlaceByUserId = (req,res,next)=>{
         return place.creator === userId
     })
     if(!place){
-        return next(new httpError("No place found for the provided user ID",404))
+        return next(new HttpError("No place found for the provided user ID",404))
     }
     res.json({
         place:place
