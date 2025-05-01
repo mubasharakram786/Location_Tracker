@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
+const {validationResult } = require('express-validator')
 const HttpError = require('../models/error-model')
 
 
@@ -55,6 +56,10 @@ const getPlacesByUserId = (req,res,next)=>{
 
 const createNewPlace = (req,res,next)=>{
   const {title,description,coordinates,address,creator} = req.body;
+  const errors = validationResult(req)
+  if(!errors.isEmpty()){
+    throw new HttpError("Please add the data in the following fields",422)
+  }
   const createdPlace = {
     id:uuidv4(),
     title,
@@ -75,6 +80,11 @@ const createNewPlace = (req,res,next)=>{
 const updatePlace = (req,res,next)=>{
     const placeId = req.params.pid;
     const {title,description} = req.body;
+    const errors = validationResult(req)
+    console.log(errors)
+        if(!errors.isEmpty()){
+            throw new HttpError("Please add the data in the following fields",422)
+        }
     const updatedPlace ={...DUMMY_PLACES.find(place => place.id === placeId)};
 
     if(!updatedPlace){

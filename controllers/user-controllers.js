@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
+const {validationResult} = require('express-validator')
 const HttpError = require('../models/error-model')
 
 const usersList = [
@@ -32,14 +33,21 @@ const usersList = [
 
 
 const getAllUsers = (req,res,next)=>{
-   const users = usersList.map(user=>{
-        return user
-    })
-    res.status(200).json({users:users})
+    res.status(200).json({users:usersList})
 }
 
 const registerUser = (req,res,next)=>{
     const {name,email,password} = req.body;
+    const errors = validationResult(req)
+      if(!errors.isEmpty()){
+        throw new HttpError("Invalid input data has passed",422)
+      }
+      const checkAlreadyExist = usersList.find(user=> user.email === email)
+
+      if(checkAlreadyExist){
+        throw new HttpError("Could not add user as email already exists", 401)
+      }
+
     const newUser = {
         id:uuidv4(),
         name,
@@ -53,8 +61,12 @@ const registerUser = (req,res,next)=>{
 }
 const loginUser = (req,res,next)=>{
     const {email,password} = req.body;
-    const checkUserExist = usersList.find(user=>user.email === email)
+    const identifiedUser = usersList.find(user=>user.email === email)
     
+    if(!identifiedUser || identifiedUser.password !== password){
+      throw new HttpError("Could not find the user for the provided email and password", 401)
+    }
+    res.status(200).json({message:"You have successfully Login"})
 
 }
 
