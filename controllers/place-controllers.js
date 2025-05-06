@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const Place = require('../models/place')
 const {validationResult } = require('express-validator')
 const HttpError = require('../models/error-model');
 const getCoordinate = require('../utils/location');
@@ -57,29 +57,33 @@ const getPlacesByUserId = (req,res,next)=>{
 
 const createNewPlace = async(req,res,next)=>{
   const {title,description,address,creator} = req.body;
-  console.log(address,"============Address")
   const errors = validationResult(req)
   if(!errors.isEmpty()){
     throw new HttpError("Please add the data in the following fields",422)
   }
+  console.log(errors,"==========================")
   let coordinates;
   try {
      coordinates = await getCoordinate(address)
   } catch (error) {
     return next(error)
   }
-  const createdPlace = {
-    id:uuidv4(),
-    title,
-    description,
-    location:coordinates,
-    address,
-    creator
-  }
-
-  DUMMY_PLACES.push(createdPlace);
-
-  res.status(201).json({
+    const createdPlace = new Place({
+        title,
+        description,
+        address,
+        location:coordinates,
+        image:"https://static.vecteezy.com/system/resources/thumbnails/052/248/075/small_2x/peacock-feather-wallpaper-hd-wallpaper-photo.jpeg",
+        creator
+    }) 
+    console.log(createdPlace,"==================New Place Object")
+    try {
+        await createdPlace.save()
+    } catch (error) {
+        error = new HttpError("Creating place failed, try again", 500)
+       return next(error)
+    }
+  return res.status(201).json({
     place:createdPlace
   })
 

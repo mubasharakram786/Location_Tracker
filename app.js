@@ -1,6 +1,7 @@
 const express = require('express')
 
 const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
 const HttpError = require('./models/error-model')
 const app = express()
 
@@ -26,5 +27,9 @@ app.use((err,req,res,next)=>{
     })
 
 })
-
-app.listen(5000)
+mongoose.connect('mongodb+srv://mubashar_akram:location_trace_2025@cluster0.7d9ibiq.mongodb.net/BrowseLocations').then(()=>{
+    console.log("DB Connected")
+    app.listen(5000)
+}).catch(err=> {
+    console.log(err)
+})

@@ -6,7 +6,6 @@ const app = express()
 const axios = require('axios')
 
 async function getCoordinate(address){
-        console.log(address,"===================Inside Geocoding")
         try {
           const response = await axios.get('https://nominatim.openstreetmap.org/search', {
             params: {

@@ -18,7 +18,8 @@
     "axios": "^1.9.0",
     "body-parser": "^2.2.0",
     "express": "^5.1.0",
-    "express-validator": "^7.2.1"
+    "express-validator": "^7.2.1",
+    "mongoose": "^8.14.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10",
