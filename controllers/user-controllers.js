@@ -1,4 +1,4 @@
-const { v4: uuidv4 } = require('uuid');
+const User = require('../models/user')
 const {validationResult} = require('express-validator')
 const HttpError = require('../models/error-model')
 
@@ -36,27 +36,35 @@ const getAllUsers = (req,res,next)=>{
     res.status(200).json({users:usersList})
 }
 
-const registerUser = (req,res,next)=>{
-    const {name,email,password} = req.body;
+const registerUser = async(req,res,next)=>{
+    const {name,email,password,places} = req.body;
     const errors = validationResult(req)
       if(!errors.isEmpty()){
         throw new HttpError("Invalid input data has passed",422)
       }
-      const checkAlreadyExist = usersList.find(user=> user.email === email)
+      let existingUser;
+      try{
+       existingUser = await User.findOne({email:email})
+      }catch(error){
+        return next(new HttpError("Could not add user as email already exists", 401))
 
-      if(checkAlreadyExist){
-        throw new HttpError("Could not add user as email already exists", 401)
       }
 
-    const newUser = {
-        id:uuidv4(),
-        name,
-        email,
-        password
-    }
-    usersList.push(newUser);
+    const newUser = new User({
+      name,
+      email,
+      image:"https://static.vecteezy.com/system/resources/thumbnails/052/248/075/small_2x/peacock-feather-wallpaper-hd-wallpaper-photo.jpeg",
+      password,
+      places
+    })
+      try {
+        newUser = await newUser.save() 
+      } catch (error) {
+        return next(new HttpError("Signing up failed, please try again", 401))
+      }
     res.status(201).json({
-        user:newUser
+        user:newUser,
+        message:"New User has been created successfully"
     })
 }
 const loginUser = (req,res,next)=>{
