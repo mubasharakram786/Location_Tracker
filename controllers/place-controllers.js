@@ -3,7 +3,6 @@ const {validationResult } = require('express-validator')
 const HttpError = require('../models/error-model');
 const getCoordinate = require('../utils/location');
 
-
 let DUMMY_PLACES = [
     {
         id:"p1",
@@ -27,31 +26,38 @@ let DUMMY_PLACES = [
         address:'Badshahi Mosque, Walled City of Lahore, Lahore, Punjab, Pakistan',
         creator:'u1'
     },
-
-
 ]
-
-const getPlaces = (req,res,next)=>{
+const getPlaceById = async(req,res,next)=>{
     const pid = req.params.pid;
-    const place = DUMMY_PLACES.find(place => place.id === pid)
-
+    let place;
+    try{
+     place = await Place.findById(pid)
+    }catch(error){
+        error = new HttpError("Fetching places failed, please try again",500)
+        return next(error)
+    }
     if(!place){
-        throw new HttpError("No place found for the provided place ID",404)
+        const error = new HttpError("No place found for the provided place ID",404)
+        return next(error)
     }
 
-    res.json({place:place})
+    res.json({place:place.toObject({getters:true})})
 }
 
-const getPlacesByUserId = (req,res,next)=>{
+const getPlacesByUserId = async(req,res,next)=>{
     const userId = req.params.uid;
-    const places = DUMMY_PLACES.filter(place=>{
-        return place.creator === userId
-    })
+    let places;
+    try {
+        places = await Place.find({creator:userId})
+    } catch (err) {
+       const error = new HttpError("Fetching places failed, please try again",500)
+        return next(error)
+    }
     if(!places || places.length === 0){
         return next(new HttpError("No places found for the provided user ID",404))
     }
     res.json({
-        places:places
+        places:places.map((place)=> place.toObject({getters:true}))
     })
 }
 
@@ -61,7 +67,6 @@ const createNewPlace = async(req,res,next)=>{
   if(!errors.isEmpty()){
     throw new HttpError("Please add the data in the following fields",422)
   }
-  console.log(errors,"==========================")
   let coordinates;
   try {
      coordinates = await getCoordinate(address)
@@ -76,7 +81,6 @@ const createNewPlace = async(req,res,next)=>{
         image:"https://static.vecteezy.com/system/resources/thumbnails/052/248/075/small_2x/peacock-feather-wallpaper-hd-wallpaper-photo.jpeg",
         creator
     }) 
-    console.log(createdPlace,"==================New Place Object")
     try {
         await createdPlace.save()
     } catch (error) {
@@ -89,43 +93,40 @@ const createNewPlace = async(req,res,next)=>{
 
 }
 
-const updatePlace = (req,res,next)=>{
+const updatePlace = async(req,res,next)=>{
     const placeId = req.params.pid;
     const {title,description} = req.body;
     const errors = validationResult(req)
     console.log(errors)
         if(!errors.isEmpty()){
-            throw new HttpError("Please add the data in the following fields",422)
+            next(new HttpError("Please add the data in the following fields",422))
         }
-    const updatedPlace ={...DUMMY_PLACES.find(place => place.id === placeId)};
-
-    if(!updatedPlace){
-        const error = new HttpError('Could not find place for the provided Id',404);
-        throw error
-    }
-
-    const placeIndex = DUMMY_PLACES.findIndex(place => place.id === placeId)
-
-     updatedPlace.title = title;
-     updatedPlace.description = description;
-
-     DUMMY_PLACES[placeIndex] = updatedPlace
+        let updatePlace;
+        try {
+            updatePlace = await Place.findByIdAndUpdate(placeId,{title:title,description:description},{new:true});
+            
+        } catch (error) {
+            return next(new HttpError('Failed to update the place',500))
+        }
 
     res.status(200).json({
-        place:updatedPlace
+        place:updatePlace.toObject({getters:true}),
+        message:"Place has been updated successfully!"
     })
 }
 
 
-const deletePlace = (req,res,next)=>{
+const deletePlace = async(req,res,next)=>{
     const placeId = req.params.pid;
 
-    DUMMY_PLACES = DUMMY_PLACES.filter(place=> place.id !== placeId)
-
+     try {
+            await Place.findByIdAndDelete(placeId)
+     } catch (error) {
+        error = new HttpError('No product found for the provided Id',404)
+     }
     res.status(200).json({
         message:"Place has been deleted successfully!",
-        place:DUMMY_PLACES
     })
 }
 
-module.exports = {getPlaces,getPlacesByUserId,createNewPlace,updatePlace,deletePlace}
+module.exports = {getPlaceById,getPlacesByUserId,createNewPlace,updatePlace,deletePlace}

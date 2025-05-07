@@ -4,11 +4,11 @@ const {check} = require("express-validator")
 
 const router = express.Router();
 
-const {getPlaces,getPlacesByUserId,createNewPlace,updatePlace,deletePlace} = require('../controllers/place-controllers')
+const {getPlaceById,getPlacesByUserId,createNewPlace,updatePlace,deletePlace} = require('../controllers/place-controllers')
 
 
 
-router.get('/:pid', getPlaces)
+router.get('/:pid', getPlaceById)
 
 router.get('/user/:uid', getPlacesByUserId)
 
