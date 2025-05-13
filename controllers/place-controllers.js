@@ -1,4 +1,6 @@
+const mongoose = require('mongoose')
 const Place = require('../models/place')
+const User = require('../models/user')
 const {validationResult } = require('express-validator')
 const HttpError = require('../models/error-model');
 const getCoordinate = require('../utils/location');
@@ -81,8 +83,24 @@ const createNewPlace = async(req,res,next)=>{
         image:"https://static.vecteezy.com/system/resources/thumbnails/052/248/075/small_2x/peacock-feather-wallpaper-hd-wallpaper-photo.jpeg",
         creator
     }) 
+    let user
     try {
-        await createdPlace.save()
+        user = await User.findById(creator)
+    } catch (error) {
+        error = new HttpError("Creating place failed, please try again",500)
+        return next(error)
+    }
+    if(!user){
+        const error = new HttpError("Couldn't find the user",404)
+        return next(error)
+    }
+    try {
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        await createdPlace.save({ session: sess });
+        user.places.push(createdPlace);
+        await user.save({ session: sess });
+        await sess.commitTransaction();
     } catch (error) {
         error = new HttpError("Creating place failed, try again", 500)
        return next(error)
@@ -118,11 +136,25 @@ const updatePlace = async(req,res,next)=>{
 
 const deletePlace = async(req,res,next)=>{
     const placeId = req.params.pid;
-
+        let place;
      try {
-            await Place.findByIdAndDelete(placeId)
+       place = await Place.findById(placeId).populate('creator');
      } catch (error) {
         error = new HttpError('No product found for the provided Id',404)
+     }
+     if(!place){
+        const error = new HttpError("Couldn't find the place for the provided Id",404)
+     }
+     try {
+        const sess = await mongoose.startSession()
+        sess.startTransaction()
+        await place.deleteOne({session:sess})
+        place.creator.places.pull(place)
+        await place.creator.save({session:sess})
+        await sess.commitTransaction();
+        
+     } catch (error) {
+        error = new HttpError("Place is not deleting, please try again",500)
      }
     res.status(200).json({
         message:"Place has been deleted successfully!",

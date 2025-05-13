@@ -1,20 +1,13 @@
 const mongoose = require('mongoose')
 
 const userSchema = mongoose.Schema({
-    title:{
+    name:{
         type:String,
         required:true
     },
     email:{
         type:String,
         required:true,
-        unique:true,
-        validate: {
-            validator: function (v) {
-              return /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(v); // regex for email
-            },
-            message: props => `${props.value} is not a valid email!`
-          }
     },
     password:{
         type:String,
@@ -25,10 +18,11 @@ const userSchema = mongoose.Schema({
         type:String,
         required:true,
     },
-    places:{
-        type:String,
+    places:[{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:'Places',
         required:true,
-    }
+    }]
 })
 
 module.exports = mongoose.model('Users', userSchema)

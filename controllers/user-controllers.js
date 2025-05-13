@@ -1,35 +1,8 @@
+const bcrypt = require('bcrypt')
 const User = require('../models/user')
 const {validationResult} = require('express-validator')
 const HttpError = require('../models/error-model')
-
-const usersList = [
-    {
-      name: "John Doe",
-      email: "john@example.com",
-      password: "password123"
-    },
-    {
-      name: "Jane Smith",
-      email: "jane@example.com",
-      password: "qwerty456"
-    },
-    {
-      name: "Ali Khan",
-      email: "ali@example.com",
-      password: "pakistan789"
-    },
-    {
-      name: "Maria Garcia",
-      email: "maria@example.com",
-      password: "maria2024"
-    },
-    {
-      name: "Chen Wei",
-      email: "chen@example.com",
-      password: "china321"
-    }
-  ];
-  
+const jwt = require('jsonwebtoken')
 
 
 const getAllUsers = (req,res,next)=>{
@@ -37,28 +10,34 @@ const getAllUsers = (req,res,next)=>{
 }
 
 const registerUser = async(req,res,next)=>{
-    const {name,email,password,places} = req.body;
+    const {name,email,password} = req.body;
     const errors = validationResult(req)
       if(!errors.isEmpty()){
-        throw new HttpError("Invalid input data has passed",422)
+        return next(new HttpError("Invalid input data has passed",422))
       }
       let existingUser;
       try{
-       existingUser = await User.findOne({email:email})
+        existingUser = await User.findOne({email:email})
       }catch(error){
-        return next(new HttpError("Could not add user as email already exists", 401))
+        return next(new HttpError("Something went wrong while checking user already", 500))
 
       }
-
+      if(existingUser){
+        return next(new HttpError('User Already Exist, please try other email address',422))
+      }
+      // Generate Salt
+      const genSalt =await bcrypt.genSalt(10);
+      // Hashing Password
+      const hashPassword = await bcrypt.hash(password,genSalt)
     const newUser = new User({
       name,
       email,
       image:"https://static.vecteezy.com/system/resources/thumbnails/052/248/075/small_2x/peacock-feather-wallpaper-hd-wallpaper-photo.jpeg",
-      password,
-      places
+      password:hashPassword,
+      places:[]
     })
       try {
-        newUser = await newUser.save() 
+         await newUser.save() 
       } catch (error) {
         return next(new HttpError("Signing up failed, please try again", 401))
       }
@@ -67,14 +46,25 @@ const registerUser = async(req,res,next)=>{
         message:"New User has been created successfully"
     })
 }
-const loginUser = (req,res,next)=>{
+const loginUser = async(req,res,next)=>{
     const {email,password} = req.body;
-    const identifiedUser = usersList.find(user=>user.email === email)
-    
-    if(!identifiedUser || identifiedUser.password !== password){
-      throw new HttpError("Could not find the user for the provided email and password", 401)
+    let user
+    try{
+       user = await User.findOne({email:email});
+    }catch(error){
+      return next(new HttpError("Signing up failed, please try again", 401))
     }
-    res.status(200).json({message:"You have successfully Login"})
+    if(user){
+      let comparePassword =await bcrypt.compare(password, user.password)
+      if(comparePassword){
+        const token = jwt.sign({id:user._id,email:user.email},process.env.SECRET_KEY,{expiresIn:'1d'});
+        res.status(200).json({token:token,message:"You have successfully Logged In"})
+      }else{
+        next(new HttpError('Password does not match',404))
+      }
+    }else{
+      next(new HttpError("User with this email doesn't exist",404))
+    }
 
 }
 

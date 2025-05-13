@@ -1,5 +1,5 @@
 const express = require('express')
-
+const dotenv = require('dotenv').config()
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
 const HttpError = require('./models/error-model')
@@ -29,7 +29,7 @@ app.use((err,req,res,next)=>{
 })
 mongoose.connect('mongodb+srv://mubashar_akram:location_trace_2025@cluster0.7d9ibiq.mongodb.net/BrowseLocations').then(()=>{
     console.log("DB Connected")
-    app.listen(5000)
+    app.listen(process.env.PORT)
 }).catch(err=> {
     console.log(err)
 })
