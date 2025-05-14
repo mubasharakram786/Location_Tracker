@@ -5,30 +5,6 @@ const {validationResult } = require('express-validator')
 const HttpError = require('../models/error-model');
 const getCoordinate = require('../utils/location');
 
-let DUMMY_PLACES = [
-    {
-        id:"p1",
-        title: "Minar-e-Pakistan",
-        coordinates: {
-            latitude: 31.5925,
-            longitude: 74.3091
-        },
-        address: "Minar-e-Pakistan, Iqbal Park, Lahore, Punjab, Pakistan",
-        description: "Minar-e-Pakistan is a national monument located in Iqbal Park, Lahore. It was built to commemorate the Lahore Resolution passed on 23rd March 1940, which eventually led to the creation of Pakistan. The tower represents a blend of Mughal, Islamic, and modern architecture and is a symbol of national pride.",
-        creator:'u1'
-    },
-    {
-        id:"p2",
-        title:'Badshahi Mosque',
-        description:"The Badshahi Mosque is one of the most iconic and historic landmarks in Lahore. Built in 1673 during the Mughal era by Emperor Aurangzeb, it is one of the largest mosques in the world. Known for its massive courtyard, grand architecture, and red sandstone construction, it is a symbol of Lahore's rich cultural heritage.",
-        location:{
-            lat:'31.5889',
-            lag:'74.3094'
-        },
-        address:'Badshahi Mosque, Walled City of Lahore, Lahore, Punjab, Pakistan',
-        creator:'u1'
-    },
-]
 const getPlaceById = async(req,res,next)=>{
     const pid = req.params.pid;
     let place;
@@ -48,18 +24,18 @@ const getPlaceById = async(req,res,next)=>{
 
 const getPlacesByUserId = async(req,res,next)=>{
     const userId = req.params.uid;
-    let places;
+    let userWithPlaces;
     try {
-        places = await Place.find({creator:userId})
+        userWithPlaces = await User.findById(userId).populate('places')
     } catch (err) {
        const error = new HttpError("Fetching places failed, please try again",500)
         return next(error)
     }
-    if(!places || places.length === 0){
+    if(!userWithPlaces || userWithPlaces.places.length === 0){
         return next(new HttpError("No places found for the provided user ID",404))
     }
     res.json({
-        places:places.map((place)=> place.toObject({getters:true}))
+        places:userWithPlaces.places.map((place)=> place.toObject({getters:true}))
     })
 }
 
