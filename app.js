@@ -1,12 +1,22 @@
 const express = require('express')
 const dotenv = require('dotenv').config()
 const bodyParser = require('body-parser')
+const cors = require('cors')
+const cookieParser = require('cookie-parser')
 const mongoose = require('mongoose')
 const HttpError = require('./models/error-model')
 const app = express()
 
 const placesRoutes = require('./routes/places-routes')
 const userRoutes = require('./routes/user-routes')
+app.use(cookieParser())
+// OR fine-grained control
+app.use(cors({
+    origin: 'http://localhost:3000', // frontend URL
+    methods: ['GET', 'POST', 'PUT','PATCH', 'DELETE'],
+    credentials: true, // if you're using cookies or Authorization headers
+  }));
+
 app.use(express.json())
 app.use('/api/places', placesRoutes)
 app.use('/api/user', userRoutes)
