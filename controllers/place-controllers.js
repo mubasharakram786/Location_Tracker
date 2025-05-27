@@ -32,7 +32,7 @@ const getPlacesByUserId = async(req,res,next)=>{
         return next(error)
     }
     if(!userWithPlaces || userWithPlaces.places.length === 0){
-        return next(new HttpError("No places found for the provided user ID",404))
+        return res.status(200).json({places:userWithPlaces.places})
     }
     res.json({
         places:userWithPlaces.places.map((place)=> place.toObject({getters:true}))
