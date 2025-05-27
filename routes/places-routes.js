@@ -4,8 +4,8 @@ const {check} = require("express-validator")
 
 const router = express.Router();
 
-const {getPlaceById,getPlacesByUserId,createNewPlace,updatePlace,deletePlace} = require('../controllers/place-controllers')
-
+const {getPlaceById,getPlacesByUserId,createNewPlace,updatePlace,deletePlace} = require('../controllers/place-controllers');
+const authenticate = require('../middleware/authMiddleware');
 
 
 router.get('/:pid', getPlaceById)
@@ -16,7 +16,7 @@ router.post('/', ([
     check('title').not().isEmpty(),
     check('description').isLength({min:5}),
     check('address').not().isEmpty()
-]), createNewPlace)
+]), authenticate, createNewPlace)
 
 router.patch('/:pid',([
     check('title').not().isEmpty(),

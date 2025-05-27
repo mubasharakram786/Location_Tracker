@@ -40,7 +40,8 @@ const getPlacesByUserId = async(req,res,next)=>{
 }
 
 const createNewPlace = async(req,res,next)=>{
-  const {title,description,address,creator} = req.body;
+  const {title,description,address} = req.body;
+  const creator = req.userId
   const errors = validationResult(req)
   if(!errors.isEmpty()){
     throw new HttpError("Please add the data in the following fields",422)
@@ -57,7 +58,7 @@ const createNewPlace = async(req,res,next)=>{
         address,
         location:coordinates,
         image:"https://static.vecteezy.com/system/resources/thumbnails/052/248/075/small_2x/peacock-feather-wallpaper-hd-wallpaper-photo.jpeg",
-        creator
+        creator:creator
     }) 
     let user
     try {
@@ -91,7 +92,6 @@ const updatePlace = async(req,res,next)=>{
     const placeId = req.params.pid;
     const {title,description} = req.body;
     const errors = validationResult(req)
-    console.log(errors)
         if(!errors.isEmpty()){
             next(new HttpError("Please add the data in the following fields",422))
         }

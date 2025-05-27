@@ -58,7 +58,13 @@ const loginUser = async(req,res,next)=>{
       let comparePassword =await bcrypt.compare(password, user.password)
       if(comparePassword){
         const token = jwt.sign({id:user._id,email:user.email},process.env.SECRET_KEY,{expiresIn:'1d'});
-        res.status(200).json({token:token,message:"You have successfully Logged In"})
+        res.cookie('token' , token,{
+          httpOnly:true,
+          secure:false  ,
+          sameSite:'lax',
+          maxAge:1000 * 60 * 60
+        })
+        res.status(200).json({token:token,userId: user._id , message:"You have successfully Logged In"})
       }else{
         next(new HttpError('Password does not match',404))
       }
@@ -68,4 +74,13 @@ const loginUser = async(req,res,next)=>{
 
 }
 
-module.exports = {getAllUsers,registerUser,loginUser}
+const logoutUser = (req,res,next)=>{
+res.clearCookie('token',{
+  httpOnly:true,
+  secure:false,
+  sameSite:'lax',
+
+})
+res.status(200).json({message:"logged out successfully "})
+}
+module.exports = {getAllUsers,registerUser,loginUser,logoutUser}
