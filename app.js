@@ -21,6 +21,16 @@ app.use(express.json())
 app.use('/api/places', placesRoutes)
 app.use('/api/user', userRoutes)
 // In case of no route match
+
+app.get('/check-exist', (req,res,next)=>{
+    let token = req.cookies.token
+    if(!token){
+       return res.status(200).json({loggedIn:false})
+    }else{
+        return res.status(200).json({loggedIn:true})
+    }
+})
+
 app.use((req,res,next)=>{
     const error = new HttpError('Could not found the route', 404)
     throw error
