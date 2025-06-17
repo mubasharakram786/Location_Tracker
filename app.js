@@ -12,7 +12,7 @@ const userRoutes = require('./routes/user-routes')
 app.use(cookieParser())
 // OR fine-grained control
 app.use(cors({
-    origin: 'http://localhost:3000', // frontend URL
+    origin: 'http://localhost:3010', // frontend URL
     methods: ['GET', 'POST', 'PUT','PATCH', 'DELETE'],
     credentials: true, // if you're using cookies or Authorization headers
   }));

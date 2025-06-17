@@ -24,9 +24,17 @@ const getPlaceById = async(req,res,next)=>{
 
 const getPlacesByUserId = async(req,res,next)=>{
     const userId = req.params.uid;
+    const page = parseInt(req.query.page) || 1
+    const limit = parseInt(req.query.limit) || 5
+    const skip = (page - 1) * limit
     let userWithPlaces;
+    let totalRecords;
+    let places;
     try {
-        userWithPlaces = await User.findById(userId).populate('places')
+        userWithPlaces = await User.findById(userId).select('places')
+        totalRecords = userWithPlaces.places.length;
+        const paginatePlacesId = await userWithPlaces.places.slice(skip, skip + limit);
+        places = await Place.find({_id:{$in : paginatePlacesId}})
     } catch (err) {
        const error = new HttpError("Fetching places failed, please try again",500)
         return next(error)
@@ -35,7 +43,10 @@ const getPlacesByUserId = async(req,res,next)=>{
         return res.status(200).json({places:userWithPlaces.places})
     }
     res.json({
-        places:userWithPlaces.places.map((place)=> place.toObject({getters:true}))
+        places:places,
+        total:totalRecords,
+        totalPages:Math.ceil(totalRecords/limit),
+        currentPage:page
     })
 }
 
