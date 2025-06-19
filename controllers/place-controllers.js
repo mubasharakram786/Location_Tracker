@@ -63,12 +63,14 @@ const createNewPlace = async(req,res,next)=>{
   } catch (error) {
     return next(error)
   }
+  const image = req.file?.path
+  console.log(file,"============================================")
     const createdPlace = new Place({
         title,
         description,
         address,
         location:coordinates,
-        image:"https://static.vecteezy.com/system/resources/thumbnails/052/248/075/small_2x/peacock-feather-wallpaper-hd-wallpaper-photo.jpeg",
+        images:image,
         creator:creator
     }) 
     let user

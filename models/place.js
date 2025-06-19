@@ -11,11 +11,11 @@ const placeSchema = mongoose.Schema({
         required:true,
 
     },
-    image:{
+    images:[{
         type:String,
         required:true,
 
-    },
+    }],
     address:{
         type:String,
         required:true,
