@@ -13,7 +13,7 @@ const storage = new CloudinaryStorage({
     params:{
         folder:'upload',
         allowed_formats:['jpg,png,jpeg'],
-        transformation:[{width:150,height:150,crop:'limit'}],
+        transformation:[{width:1024,height:768,crop:'limit'}],
     },
 });
 

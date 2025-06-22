@@ -53,3 +53,9 @@ mongoose.connect('mongodb+srv://mubashar_akram:location_trace_2025@cluster0.7d9i
 }).catch(err=> {
     console.log(err)
 })
+// mongoose.connect('mongodb://localhost:27017/BrowseLocations').then(()=>{
+//     console.log("DB Connected")
+//     app.listen(process.env.PORT)
+// }).catch(err=> {
+//     console.log(err)
+// })

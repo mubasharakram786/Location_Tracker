@@ -52,7 +52,7 @@ const loginUser = async(req,res,next)=>{
     try{
        user = await User.findOne({email:email});
     }catch(error){
-      return next(new HttpError("Signing up failed, please try again", 401))
+      return next(new HttpError("Account dose'nt exists related to this email", 401))
     }
     if(user){
       let comparePassword =await bcrypt.compare(password, user.password)
@@ -62,7 +62,7 @@ const loginUser = async(req,res,next)=>{
           httpOnly:true,
           secure:false  ,
           sameSite:'lax',
-          maxAge:1000 * 60 * 60
+          maxAge:3600 * 60 * 60
         })
         res.status(200).json({token:token,userId: user._id , message:"You have successfully Logged In"})
       }else{

@@ -63,14 +63,14 @@ const createNewPlace = async(req,res,next)=>{
   } catch (error) {
     return next(error)
   }
-  const image = req.file?.path
-  console.log(file,"============================================")
+  console.log(req.files,"==============================Images")
+    const images = req.files.map(file=> file.path)
     const createdPlace = new Place({
         title,
         description,
         address,
         location:coordinates,
-        images:image,
+        images:images,
         creator:creator
     }) 
     let user
@@ -87,14 +87,19 @@ const createNewPlace = async(req,res,next)=>{
     try {
         const sess = await mongoose.startSession();
         sess.startTransaction();
+        const checkPlaceExist = await Place.findOne({title});
+        if(checkPlaceExist){
+            return next(new HttpError('Place already exist', 422))
+        }
         await createdPlace.save({ session: sess });
         user.places.push(createdPlace);
         await user.save({ session: sess });
         await sess.commitTransaction();
-    } catch (error) {
+    } catch (error) {      
         error = new HttpError("Creating place failed, try again", 500)
        return next(error)
     }
+  
   return res.status(201).json({
     place:createdPlace
   })
@@ -104,13 +109,14 @@ const createNewPlace = async(req,res,next)=>{
 const updatePlace = async(req,res,next)=>{
     const placeId = req.params.pid;
     const {title,description} = req.body;
+    const images = req.files.map(file=> file.path)
     const errors = validationResult(req)
         if(!errors.isEmpty()){
             next(new HttpError("Please add the data in the following fields",422))
         }
         let updatePlace;
         try {
-            updatePlace = await Place.findByIdAndUpdate(placeId,{title:title,description:description},{new:true});
+            updatePlace = await Place.findByIdAndUpdate(placeId,{title:title,description:description,images:images},{new:true});
             
         } catch (error) {
             return next(new HttpError('Failed to update the place',500))
